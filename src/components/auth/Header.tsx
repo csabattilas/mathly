@@ -1,17 +1,14 @@
-import {useNavigate} from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import * as React from 'react';
-import {AuthContext} from './AuthProvider';
+import { AuthContext } from './AuthProvider';
 
 function AuthStatus() {
     const authContext = React.useContext(AuthContext);
     const navigate = useNavigate();
 
-    if (!authContext?.user) {
-        return <header></header>;
-    }
-
-    return  (
-           (<header>
+    return (
+        (<header>
+            {!authContext?.isLoading && <>
                 Welcome {authContext?.user.displayName}
                 <button
                     onClick={() => {
@@ -20,7 +17,8 @@ function AuthStatus() {
                 >
                     Sign out
                 </button>
-            </header>)
+                </>}
+        </header>)
     );
 }
 

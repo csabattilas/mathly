@@ -16,10 +16,11 @@ interface AuthContextType {
 
 export const AuthContext = React.createContext<AuthContextType>(null!);
 
-let autContext: AuthContextType  = { user : null, isActive: false };
-
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = React.useState<any>(undefined);
+    const [user, setUser] = React.useState<any>({
+        isLoading: false,
+        user: null
+    });
     const provider = new GoogleAuthProvider();
 
     const signIn = async () => {
@@ -46,9 +47,12 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
     firebaseAuth.onAuthStateChanged((user) => {
         console.log(user);
-        setUser(user);
-        autContext = { user, signIn, signOut, isActive: true };
+        setUser({user, isLoading: false});
     });
 
-    return <AuthContext.Provider value={autContext}>{children}</AuthContext.Provider>;
+    return <AuthContext.Provider value={{
+        signIn, signOut,
+        user: user.user,
+        isLoading: user.isLoading
+    }}>{children}</AuthContext.Provider>;
 }
