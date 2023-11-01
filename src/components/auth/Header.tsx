@@ -1,18 +1,15 @@
-import {useNavigate} from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import * as React from 'react';
-import {AuthContext} from './AuthProvider';
+import { AuthContext } from './AuthProvider';
 
-function AuthStatus() {
+function Header() {
     const authContext = React.useContext(AuthContext);
     const navigate = useNavigate();
 
-    if (!authContext?.user) {
-        return <header></header>;
-    }
-
-    return  (
-           (<header>
-                Welcome {authContext?.user.displayName}
+    return (
+        (<header>
+            { !authContext.isLoading && authContext.user &&
+                <>Welcome {authContext.user?.displayName}
                 <button
                     onClick={() => {
                         authContext.signOut && authContext.signOut(() => navigate('/'));
@@ -20,8 +17,10 @@ function AuthStatus() {
                 >
                     Sign out
                 </button>
-            </header>)
+                </>
+            }
+        </header>)
     );
 }
 
-export default AuthStatus
+export default Header

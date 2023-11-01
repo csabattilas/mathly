@@ -7,8 +7,13 @@ interface User {
     uid: null | string
 }
 
+interface UserState {
+    user: User |  null;
+    isLoading: boolean;
+}
+
 interface AuthContextType {
-    isActive: boolean;
+    isLoading: boolean;
     user: User | null;
     signIn?: () => void;
     signOut?: (callback: VoidFunction) => void;
@@ -16,10 +21,12 @@ interface AuthContextType {
 
 export const AuthContext = React.createContext<AuthContextType>(null!);
 
-let autContext: AuthContextType  = { user : null, isActive: false };
-
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = React.useState<any>(undefined);
+    const [userState, setUserState] = React.useState<UserState>({
+        isLoading: true,
+        user: null
+    });
+
     const provider = new GoogleAuthProvider();
 
     const signIn = async () => {
@@ -39,16 +46,18 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
     const signOut = (callback: VoidFunction) => {
         return firebaseAuth.signOut().then(() => {
-            setUser(null);
+            setUserState({isLoading: false, user: null});
             callback();
         });
     };
 
     firebaseAuth.onAuthStateChanged((user) => {
-        console.log(user);
-        setUser(user);
-        autContext = { user, signIn, signOut, isActive: true };
+        setUserState({user, isLoading: false});
     });
 
-    return <AuthContext.Provider value={autContext}>{children}</AuthContext.Provider>;
+    return <AuthContext.Provider value={{
+        signIn, signOut,
+        user: userState?.user,
+        isLoading: userState?.isLoading
+    }}>{children}</AuthContext.Provider>;
 }

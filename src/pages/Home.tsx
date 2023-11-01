@@ -10,7 +10,7 @@ const Home = () => {
     return (
         <div>
             <h1>Mathly</h1>
-            { authContext?.isActive
+            { !authContext.isLoading
                 ? (authContext.user === null
                     ? <Login></Login>
                     : <Navigate to={location.state?.from ? location.state?.from?.pathname : 'dashboard'} />)
