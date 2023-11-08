@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import {map, takeUntil, interval, Subject, tap, startWith, takeWhile} from 'rxjs';
+import {map, takeUntil, interval, Subject, tap, startWith, takeWhile, of} from 'rxjs';
+import {AuthContext, UserState, User} from '../../components/auth/AuthProvider';
+import {updatePoints} from '../../services/db/points';
 
 function Math10() {
   const [num1, setNum1] = useState<number>(0);
@@ -10,6 +12,8 @@ function Math10() {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [stopTimer, setStopTimer] = useState<Subject<void>>();
 
+  const authContext = React.useContext(AuthContext);
+
   const startTimer = () => {
     const stopTimer = new Subject<void>()
 
@@ -19,7 +23,6 @@ function Math10() {
             takeWhile((value: number) => value <= 30),
             takeUntil(stopTimer)
         ).subscribe((value) => {
-            console.log(value);
             setElapsedSeconds(value)
         }
     );
@@ -27,9 +30,21 @@ function Math10() {
     return stopTimer;
   }
 
-  const generateRandomNumbers = () => {
-    console.log('generate numbers')
+  const setPoints = async () => {
+      if(authContext.user) {
+          const user: User = {
+              ...authContext.user,
+              points: (authContext.user?.points ?? 0) + elapsedSeconds,
+          }
 
+          if(user.points && user.points > (authContext.user.points ?? 0)) {
+              await updatePoints(user.uid, user.points);
+              authContext.setUser(user);
+          }
+      }
+  }
+
+  const generateRandomNumbers = () => {
     const randomNum1 = Math.floor(Math.random() * 10) + 1;
     const randomNum2 = Math.floor(Math.random() * 10) + 1;
 
@@ -80,6 +95,7 @@ function Math10() {
 
                       if(choice === correctAnswer) {
                           stopTimer?.next();
+                          setPoints()
                       }
                     }}>
                   {choice}

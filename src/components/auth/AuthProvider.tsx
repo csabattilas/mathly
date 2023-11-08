@@ -1,13 +1,15 @@
 import * as React from "react";
 import { firebaseAuth } from "../../services/firebase";
 import {GoogleAuthProvider, signInWithPopup} from 'firebase/auth';
+import {getCurrentPoints} from '../../services/db/points';
 
-interface User {
+export interface User {
     displayName: null | string;
-    uid: null | string
+    uid: string,
+    points: number,
 }
 
-interface UserState {
+export interface UserState {
     user: User |  null;
     isLoading: boolean;
 }
@@ -17,47 +19,43 @@ interface AuthContextType {
     user: User | null;
     signIn?: () => void;
     signOut?: (callback: VoidFunction) => void;
+    setUser: (user: User | null) => void
 }
 
 export const AuthContext = React.createContext<AuthContextType>(null!);
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [userState, setUserState] = React.useState<UserState>({
-        isLoading: true,
-        user: null
-    });
+    console.log('hello app provider');
 
-    const provider = new GoogleAuthProvider();
+    const [isLoading, setIsLoading] = React.useState<boolean>(true);
+    const [user, setUser] = React.useState<User | null>(null)
 
-    const signIn = async () => {
-        return await signInWithPopup(firebaseAuth, provider)
-            .then((result) => {})
-            .catch((error) => {
-                // Handle Errors here.
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                // The email of the user's account used.
-                const email = error.customData.email;
-                // The AuthCredential type that was used.
-                const credential = GoogleAuthProvider.credentialFromError(error);
-                // ...
-            })
+    const signOut = async (callback: VoidFunction) => {
+        await firebaseAuth.signOut();
+        setUser(null);
+        callback();
     };
 
-    const signOut = (callback: VoidFunction) => {
-        return firebaseAuth.signOut().then(() => {
-            setUserState({isLoading: false, user: null});
-            callback();
+    console.log(user);
+
+    if(!user?.uid) {
+        firebaseAuth.onAuthStateChanged(async (user) => {
+            console.log('hello status change');
+            if(user?.uid) {
+                const points = await getCurrentPoints(user?.uid);
+                setUser({displayName: user.displayName, uid: user.uid, points});
+            }
         });
-    };
+    }
 
-    firebaseAuth.onAuthStateChanged((user) => {
-        setUserState({user, isLoading: false});
-    });
+    if(isLoading) {
+        setIsLoading(false);
+    }
 
     return <AuthContext.Provider value={{
-        signIn, signOut,
-        user: userState?.user,
-        isLoading: userState?.isLoading
+        signOut,
+        user,
+        isLoading,
+        setUser,
     }}>{children}</AuthContext.Provider>;
 }

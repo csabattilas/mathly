@@ -9,14 +9,14 @@ function Header() {
     return (
         (<header>
             { !authContext.isLoading && authContext.user &&
-                <>Welcome {authContext.user?.displayName}
+                <>Welcome {authContext.user.displayName}
                 <button
                     onClick={() => {
                         authContext.signOut && authContext.signOut(() => navigate('/'));
                     }}
                 >
                     Sign out
-                </button>
+                </button> {authContext.user.points}
                 </>
             }
         </header>)
