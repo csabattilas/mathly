@@ -2,6 +2,7 @@ import * as React from "react";
 import { firebaseAuth } from "../../services/firebase";
 import {GoogleAuthProvider, signInWithPopup} from 'firebase/auth';
 import {getCurrentPoints} from '../../services/db/points';
+import {useEffect} from 'react';
 
 export interface User {
     displayName: null | string;
@@ -30,27 +31,24 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     const [isLoading, setIsLoading] = React.useState<boolean>(true);
     const [user, setUser] = React.useState<User | null>(null)
 
+    useEffect(() => {
+        firebaseAuth.onAuthStateChanged(async (user) => {
+            console.log('hello status change');
+            if(user?.uid) {
+                console.log('get points');
+                const points = await getCurrentPoints(user?.uid);
+                setUser({displayName: user.displayName, uid: user.uid, points});
+            }
+        });
+
+        setIsLoading(false);
+    }, [])
+
     const signOut = async (callback: VoidFunction) => {
         await firebaseAuth.signOut();
         setUser(null);
         callback();
     };
-
-    console.log(user);
-
-    if(!user?.uid) {
-        firebaseAuth.onAuthStateChanged(async (user) => {
-            console.log('hello status change');
-            if(user?.uid) {
-                const points = await getCurrentPoints(user?.uid);
-                setUser({displayName: user.displayName, uid: user.uid, points});
-            }
-        });
-    }
-
-    if(isLoading) {
-        setIsLoading(false);
-    }
 
     return <AuthContext.Provider value={{
         signOut,
