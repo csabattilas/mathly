@@ -16,11 +16,13 @@ function Math10() {
 
   const startTimer = () => {
     const stopTimer = new Subject<void>()
+    setElapsedSeconds(30);
 
     interval(1000) // Emit a value every second
         .pipe(
-            map((value: number) => 30 - value),
-            takeWhile((value: number) => value <= 30),
+            map((value: number) => 29 - value),
+            takeWhile((value: number) => value >= 0),
+            tap(console.log),
             takeUntil(stopTimer)
         ).subscribe((value) => {
             setElapsedSeconds(value)
@@ -45,6 +47,8 @@ function Math10() {
   }
 
   const generateRandomNumbers = () => {
+    console.log('generate');
+
     const randomNum1 = Math.floor(Math.random() * 10) + 1;
     const randomNum2 = Math.floor(Math.random() * 10) + 1;
 
@@ -108,7 +112,7 @@ function Math10() {
               Your answer: {selectedAnswer} {selectedAnswer ?  (selectedAnswer === correctAnswer ? '(Correct)' : '(Incorrect)') : ''}
             </p>
         )}
-        {selectedAnswer === correctAnswer && <button onClick={generateRandomNumbers}>Next</button>}
+        {(selectedAnswer === correctAnswer || elapsedSeconds === 0) && <button onClick={generateRandomNumbers}>Next</button>}
       </div>
   );
 }

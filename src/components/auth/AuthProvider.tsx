@@ -38,10 +38,9 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
                 console.log('get points');
                 const points = await getCurrentPoints(user?.uid);
                 setUser({displayName: user.displayName, uid: user.uid, points});
+                setIsLoading(false);
             }
         });
-
-        setIsLoading(false);
     }, [])
 
     const signOut = async (callback: VoidFunction) => {
