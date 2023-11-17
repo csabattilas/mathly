@@ -1,5 +1,5 @@
-import React from 'react';
-import {Link} from 'react-router-dom';
+import React from 'react'
+import { Link } from 'react-router-dom'
 
 const Dashboard = () => (
     <div>
@@ -11,5 +11,5 @@ const Dashboard = () => (
             </li>
         </ul>
     </div>
-);
-export default Dashboard;
+)
+export default Dashboard
